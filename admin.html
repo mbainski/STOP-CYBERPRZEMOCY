@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel administratora — STOP CYBERPRZEMOCY</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f6fb; color: #1a1a1a; padding: 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .header {
+    background: white;
+    color: #1F3864;
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    gap: 12px;
+    border-bottom: 4px solid #1F3864;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    position: relative;
+  }
+  .header-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .header-logo img {
+    max-height: 60px;
+    width: auto;
+    display: block;
+  }
+  .header-right {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .header h1 { font-size: 1.1rem; font-weight: 700; color: #1F3864; }
+  .header .badge {
+    background: #1F3864;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px; font-size: 0.9rem; font-weight: 600;
+  }
+  @media (max-width: 600px) {
+    .header-logo img { max-height: 45px; }
+  }
+
+  .login-screen {
+    max-width: 400px; margin: 80px auto; background: white;
+    padding: 32px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  }
+  .login-screen h2 { color: #1F3864; margin-bottom: 16px; }
+  .login-screen input {
+    width: 100%; padding: 12px; font-size: 1rem;
+    border: 2px solid #D9E2F3; border-radius: 8px; margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .login-screen .info {
+    background: #FFF2CC; padding: 12px; border-radius: 6px;
+    font-size: 0.85rem; line-height: 1.5; color: #555; margin-bottom: 16px;
+  }
+  .login-screen .info code {
+    background: #fff; padding: 2px 6px; border-radius: 3px;
+    font-family: monospace; font-size: 0.85rem;
+  }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .stat {
+    background: white; padding: 16px 20px; border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  .stat-label { font-size: 0.82rem; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 1.7rem; font-weight: 700; color: #1F3864; margin-top: 4px; }
+
+  .toolbar {
+    background: white; padding: 16px 20px; border-radius: 10px;
+    margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: center; box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  .toolbar input, .toolbar select {
+    padding: 10px 14px; font-size: 0.95rem;
+    border: 2px solid #D9E2F3; border-radius: 8px; font-family: inherit;
+  }
+  .toolbar input { flex: 1; min-width: 200px; }
+  .btn {
+    padding: 10px 18px; background: #2E75B6; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+    font-family: inherit; font-size: 0.95rem; transition: background 0.2s;
+  }
+  .btn:hover { background: #1F3864; }
+  .btn.green { background: #4A9B6F; }
+  .btn.green:hover { background: #2d6a47; }
+  .btn.red { background: #C00000; }
+  .btn.red:hover { background: #8a0000; }
+
+  .table-wrapper {
+    background: white; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  .table-scroll { overflow-x: auto; max-height: 65vh; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  thead { background: #1F3864; color: white; position: sticky; top: 0; z-index: 1; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+  th { font-weight: 600; cursor: pointer; user-select: none; }
+  th:hover { background: #2a4d8a; }
+  th.sorted-asc::after { content: " ▲"; }
+  th.sorted-desc::after { content: " ▼"; }
+  tbody tr:hover { background: #f7faff; }
+  tbody tr.top1 { background: #fff4d6; }
+  tbody tr.top2 { background: #f0f0f0; }
+  tbody tr.top3 { background: #fce4d6; }
+
+  .rank { font-weight: 700; color: #1F3864; }
+  .wynik {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    background: #2E75B6; color: white; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .wynik.high { background: #4A9B6F; }
+  .wynik.low { background: #C00000; }
+  .czas { font-variant-numeric: tabular-nums; color: #555; }
+  .timeout-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: #BF8F00; color: white; font-size: 0.75rem; font-weight: 600;
+  }
+
+  .empty-state { text-align: center; padding: 40px; color: #777; }
+  .loading { text-align: center; padding: 40px; color: #2E75B6; font-weight: 600; }
+  .error-banner {
+    background: #ffeaea; color: #8a0000; padding: 14px;
+    border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #C00000;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Wstrzykiwane przez JS -->
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script>
+// =====================================================================
+// KONFIGURACJA
+// =====================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAxB9B9DqBawZkBru_hv-_SvYBqMMnQOEI",
+  authDomain: "stop-cyberprzemocy-2026.firebaseapp.com",
+  databaseURL: "https://stop-cyberprzemocy-2026-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "stop-cyberprzemocy-2026",
+  storageBucket: "stop-cyberprzemocy-2026.firebasestorage.app",
+  messagingSenderId: "423372511131",
+  appId: "1:423372511131:web:0a69827b4da0b4e8a1333e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// HASŁO ADMINA - to jest tylko zabezpieczenie przed przypadkowym otwarciem
+// Prawdziwe zabezpieczenie to "Database Secret" w Firebase (patrz README)
+const HASLO_ADMINA = "Bajadera1"; // ZMIEŃ TO NA SWOJE!
+
+let wszystkieWyniki = [];
+let aktualneSortowanie = { kolumna: 'wynik_czas', kierunek: 'desc' };
+let filtrSzkola = '';
+let filtrSzkolaNumer = '';
+let filtrSzukaj = '';
+
+// =====================================================================
+// HELPERY
+// =====================================================================
+function $(id) { return document.getElementById(id); }
+function escape(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function formatCzas(sek) {
+  if (!sek && sek !== 0) return '—';
+  const m = Math.floor(sek / 60);
+  const s = sek % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function formatData(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleString('pl-PL', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+// =====================================================================
+// LOGIN
+// =====================================================================
+function ekranLogowania() {
+  $('app').innerHTML = `
+    <div class="login-screen">
+      <h2>🔐 Panel administratora</h2>
+      <div class="info">
+        <strong>STOP CYBERPRZEMOCY — wyniki konkursu</strong><br><br>
+        Aby uzyskać dostęp, podaj hasło administratora.<br><br>
+        Domyślne hasło: <code>a jak myślisz :P</code> (zmień je w pliku <code>admin.html</code>!)
+      </div>
+      <input type="password" id="haslo" placeholder="Hasło" autofocus>
+      <button class="btn" style="width:100%" id="zalogujBtn">Zaloguj</button>
+    </div>
+  `;
+  $('haslo').addEventListener('keydown', e => { if (e.key === 'Enter') zaloguj(); });
+  $('zalogujBtn').addEventListener('click', zaloguj);
+}
+
+function zaloguj() {
+  if ($('haslo').value === HASLO_ADMINA) {
+    sessionStorage.setItem('admin_zalogowany', '1');
+    panelGlowny();
+  } else {
+    alert('Niepoprawne hasło');
+    $('haslo').value = '';
+    $('haslo').focus();
+  }
+}
+
+// =====================================================================
+// PANEL GŁÓWNY
+// =====================================================================
+function panelGlowny() {
+  $('app').innerHTML = `
+    <div class="header">
+      <div class="header-logo">
+        <img src="logo.png" alt="STOP CYBERPRZEMOCY">
+      </div>
+      <div class="header-right">
+        <h1>Wyniki konkursu</h1>
+        <span class="badge" id="status">⏳ Łączenie z bazą...</span>
+        <button class="btn red" id="wylogujBtn">Wyloguj</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="toolbar">
+      <input type="text" id="szukaj" placeholder="🔍 Szukaj po imieniu, nazwisku lub szkole...">
+      <select id="filtrSzkolaNumer">
+        <option value="">📊 Wszystkie numery szkół</option>
+      </select>
+      <select id="filtrSzkola">
+        <option value="">Wszystkie pełne nazwy</option>
+      </select>
+      <button class="btn green" id="eksportBtn">📥 Eksport CSV (Excel)</button>
+      <button class="btn" id="odswiezBtn">🔄 Odśwież</button>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="rank">#</th>
+              <th data-sort="nazwisko">Nazwisko</th>
+              <th data-sort="imie">Imię</th>
+              <th data-sort="szkolaNumer">Nr szkoły</th>
+              <th data-sort="szkola">Pełna nazwa szkoły</th>
+              <th data-sort="klasa">Klasa</th>
+              <th data-sort="wynik">Wynik</th>
+              <th data-sort="czas">Czas (min:sek)</th>
+              <th data-sort="data">Data wysłania</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="wynikiTbody">
+            <tr><td colspan="10" class="loading">⏳ Pobieranie wyników...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  $('wylogujBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('admin_zalogowany');
+    location.reload();
+  });
+  $('eksportBtn').addEventListener('click', eksportCSV);
+  $('odswiezBtn').addEventListener('click', pobierzWyniki);
+  $('szukaj').addEventListener('input', e => { filtrSzukaj = e.target.value.toLowerCase(); renderuj(); });
+  $('filtrSzkola').addEventListener('change', e => { filtrSzkola = e.target.value; renderuj(); });
+  $('filtrSzkolaNumer').addEventListener('change', e => { filtrSzkolaNumer = e.target.value; renderuj(); });
+
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      if (aktualneSortowanie.kolumna === k) {
+        aktualneSortowanie.kierunek = aktualneSortowanie.kierunek === 'asc' ? 'desc' : 'asc';
+      } else {
+        aktualneSortowanie.kolumna = k;
+        aktualneSortowanie.kierunek = (k === 'wynik' || k === 'data') ? 'desc' : 'asc';
+      }
+      renderuj();
+    });
+  });
+
+  pobierzWyniki();
+}
+
+// =====================================================================
+// POBIERANIE DANYCH
+// =====================================================================
+function pobierzWyniki() {
+  $('status').textContent = '⏳ Pobieranie...';
+  $('wynikiTbody').innerHTML = '<tr><td colspan="10" class="loading">⏳ Pobieranie wyników...</td></tr>';
+
+  db.ref('wyniki').once('value')
+    .then(snap => {
+      const dane = snap.val() || {};
+      wszystkieWyniki = Object.entries(dane).map(([id, w]) => ({ id, ...w }));
+      $('status').textContent = `✅ Połączono — ${wszystkieWyniki.length} wpisów`;
+      aktualizujListeSzkol();
+      aktualizujStaty();
+      renderuj();
+    })
+    .catch(err => {
+      console.error(err);
+      $('status').textContent = '❌ Błąd połączenia';
+      $('wynikiTbody').innerHTML = `
+        <tr><td colspan="10">
+          <div class="error-banner">
+            <strong>Błąd dostępu do bazy:</strong> ${escape(err.message)}<br><br>
+            <strong>Co zrobić?</strong><br>
+            Aby panel admina mógł czytać dane, musisz tymczasowo zmienić reguły Firebase na tryb odczytu z hasłem
+            (patrz README). Najprostszy sposób: zmień <code>".read": false</code> na <code>".read": true</code>
+            podczas pracy z panelem, a po zakończeniu wróć do <code>false</code>.
+          </div>
+        </td></tr>
+      `;
+    });
+}
+
+function aktualizujListeSzkol() {
+  // === FILTR po pełnej nazwie ===
+  const szkoly = [...new Set(wszystkieWyniki.map(w => w.szkola).filter(Boolean))].sort();
+  const sel = $('filtrSzkola');
+  sel.innerHTML = '<option value="">Wszystkie pełne nazwy (' + wszystkieWyniki.length + ')</option>' +
+    szkoly.map(s => {
+      const ile = wszystkieWyniki.filter(w => w.szkola === s).length;
+      return `<option value="${escape(s)}">${escape(s)} (${ile})</option>`;
+    }).join('');
+  if (filtrSzkola) sel.value = filtrSzkola;
+
+  // === FILTR po NUMERZE szkoły (najważniejsze do liczenia rankingu) ===
+  const numery = [...new Set(wszystkieWyniki.map(w => w.szkolaNumer).filter(n => n && String(n).trim() !== ''))]
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const selNr = $('filtrSzkolaNumer');
+  // Dodajemy też pozycję dla "bez numeru"
+  const bezNumeru = wszystkieWyniki.filter(w => !w.szkolaNumer || String(w.szkolaNumer).trim() === '').length;
+  let optNumery = '<option value="">📊 Wszystkie numery szkół (' + wszystkieWyniki.length + ')</option>';
+  numery.forEach(n => {
+    const ile = wszystkieWyniki.filter(w => String(w.szkolaNumer) === String(n)).length;
+    optNumery += `<option value="${escape(n)}">SP nr ${escape(n)} (${ile} uczniów)</option>`;
+  });
+  if (bezNumeru > 0) {
+    optNumery += `<option value="__BRAK__">⚠️ Bez numeru (${bezNumeru} uczniów)</option>`;
+  }
+  selNr.innerHTML = optNumery;
+  if (filtrSzkolaNumer) selNr.value = filtrSzkolaNumer;
+}
+
+function aktualizujStaty() {
+  const liczba = wszystkieWyniki.length;
+  const szkolyTekstem = new Set(wszystkieWyniki.map(w => w.szkola).filter(Boolean)).size;
+  const szkolyPoNumerze = new Set(
+    wszystkieWyniki.map(w => w.szkolaNumer).filter(n => n && String(n).trim() !== '')
+  ).size;
+  const ukonczone = wszystkieWyniki.filter(w => w.powodZakonczenia === 'completed').length;
+  const sredniWynik = liczba > 0
+    ? (wszystkieWyniki.reduce((s,w) => s + (w.wynik || 0), 0) / liczba).toFixed(1)
+    : 0;
+  const najlepszy = liczba > 0 ? Math.max(...wszystkieWyniki.map(w => w.wynik || 0)) : 0;
+
+  $('stats').innerHTML = `
+    <div class="stat"><div class="stat-label">Uczestników</div><div class="stat-value">${liczba}</div></div>
+    <div class="stat"><div class="stat-label">Unikalnych szkół (po numerze)</div><div class="stat-value">${szkolyPoNumerze}</div></div>
+    <div class="stat"><div class="stat-label">Pełnych nazw szkół</div><div class="stat-value">${szkolyTekstem}</div></div>
+    <div class="stat"><div class="stat-label">Ukończyło</div><div class="stat-value">${ukonczone}</div></div>
+    <div class="stat"><div class="stat-label">Średni wynik</div><div class="stat-value">${sredniWynik} / 30</div></div>
+    <div class="stat"><div class="stat-label">Najlepszy wynik</div><div class="stat-value">${najlepszy} / 30</div></div>
+  `;
+}
+
+// =====================================================================
+// RENDEROWANIE TABELI
+// =====================================================================
+function renderuj() {
+  let dane = [...wszystkieWyniki];
+
+  // Filtr szkoły (pełna nazwa)
+  if (filtrSzkola) dane = dane.filter(w => w.szkola === filtrSzkola);
+
+  // Filtr po NUMERZE szkoły
+  if (filtrSzkolaNumer === '__BRAK__') {
+    dane = dane.filter(w => !w.szkolaNumer || String(w.szkolaNumer).trim() === '');
+  } else if (filtrSzkolaNumer) {
+    dane = dane.filter(w => String(w.szkolaNumer) === String(filtrSzkolaNumer));
+  }
+
+  // Filtr szukaj
+  if (filtrSzukaj) {
+    dane = dane.filter(w =>
+      (w.imie || '').toLowerCase().includes(filtrSzukaj) ||
+      (w.nazwisko || '').toLowerCase().includes(filtrSzukaj) ||
+      (w.szkola || '').toLowerCase().includes(filtrSzukaj) ||
+      (w.klasa || '').toLowerCase().includes(filtrSzukaj)
+    );
+  }
+
+  // Sortowanie
+  const k = aktualneSortowanie.kolumna;
+  const kier = aktualneSortowanie.kierunek === 'asc' ? 1 : -1;
+
+  if (k === 'wynik_czas' || k === 'rank') {
+    // Domyślne sortowanie konkursowe: najpierw wynik DESC, potem czas ASC
+    dane.sort((a,b) => {
+      const wa = a.wynik || 0, wb = b.wynik || 0;
+      if (wa !== wb) return wb - wa;
+      return (a.czasRozwiazywaniaSekund || 999999) - (b.czasRozwiazywaniaSekund || 999999);
+    });
+  } else if (k === 'wynik') {
+    dane.sort((a,b) => ((a.wynik || 0) - (b.wynik || 0)) * kier);
+  } else if (k === 'czas') {
+    dane.sort((a,b) => ((a.czasRozwiazywaniaSekund || 999999) - (b.czasRozwiazywaniaSekund || 999999)) * kier);
+  } else if (k === 'data') {
+    dane.sort((a,b) => ((a.timestamp || 0) - (b.timestamp || 0)) * kier);
+  } else if (k === 'szkolaNumer') {
+    // Sortowanie numerycznie - 5 przed 23, nie alfabetycznie
+    dane.sort((a,b) => {
+      const na = parseInt(a.szkolaNumer, 10) || 999999;
+      const nb = parseInt(b.szkolaNumer, 10) || 999999;
+      return (na - nb) * kier;
+    });
+  } else {
+    dane.sort((a,b) => String(a[k] || '').localeCompare(String(b[k] || ''), 'pl') * kier);
+  }
+
+  // Aktualizuj nagłówki
+  document.querySelectorAll('th').forEach(th => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (th.dataset.sort === k) {
+      th.classList.add(aktualneSortowanie.kierunek === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    }
+  });
+
+  // Render
+  if (dane.length === 0) {
+    $('wynikiTbody').innerHTML = '<tr><td colspan="10" class="empty-state">Brak wyników do wyświetlenia.</td></tr>';
+    return;
+  }
+
+  $('wynikiTbody').innerHTML = dane.map((w, i) => {
+    const wynik = w.wynik || 0;
+    const wynikClass = wynik >= 24 ? 'high' : wynik <= 14 ? 'low' : '';
+    const trClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const timeout = w.powodZakonczenia === 'timeout';
+    const nrSzkoly = w.szkolaNumer && String(w.szkolaNumer).trim() !== ''
+      ? `<strong style="color:#1F3864;">${escape(w.szkolaNumer)}</strong>`
+      : '<span style="color:#BF8F00;" title="Uczeń nie podał numeru w nazwie">⚠️</span>';
+    return `
+      <tr class="${trClass}">
+        <td class="rank">${i + 1}</td>
+        <td><strong>${escape(w.nazwisko)}</strong></td>
+        <td>${escape(w.imie)}</td>
+        <td style="text-align:center;">${nrSzkoly}</td>
+        <td>${escape(w.szkola)}</td>
+        <td>${escape(w.klasa)}</td>
+        <td><span class="wynik ${wynikClass}">${wynik}/${w.liczbaPytan || 30}</span></td>
+        <td class="czas">${formatCzas(w.czasRozwiazywaniaSekund)}</td>
+        <td>${formatData(w.timestamp)}</td>
+        <td>${timeout ? '<span class="timeout-badge">⏱️ Timeout</span>' : '✅ Ukończone'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// =====================================================================
+// EKSPORT CSV
+// =====================================================================
+function eksportCSV() {
+  if (wszystkieWyniki.length === 0) {
+    alert('Brak danych do eksportu');
+    return;
+  }
+
+  // Sortuj jak w rankingu
+  const dane = [...wszystkieWyniki].sort((a,b) => {
+    const wa = a.wynik || 0, wb = b.wynik || 0;
+    if (wa !== wb) return wb - wa;
+    return (a.czasRozwiazywaniaSekund || 999999) - (b.czasRozwiazywaniaSekund || 999999);
+  });
+
+  const naglowki = [
+    'Miejsce', 'Nazwisko', 'Imię', 'Nr szkoły', 'Pełna nazwa szkoły', 'Klasa',
+    'Wynik (pkt)', 'Liczba pytań', 'Liczba odpowiedzi',
+    'Czas rozwiązywania (sekundy)', 'Czas (min:sek)',
+    'Data wysłania', 'Powód zakończenia'
+  ];
+
+  const wiersze = dane.map((w, i) => [
+    i + 1,
+    w.nazwisko || '',
+    w.imie || '',
+    w.szkolaNumer || '',
+    w.szkola || '',
+    w.klasa || '',
+    w.wynik || 0,
+    w.liczbaPytan || 30,
+    w.liczbaOdpowiedzianych || 0,
+    w.czasRozwiazywaniaSekund || '',
+    formatCzas(w.czasRozwiazywaniaSekund),
+    formatData(w.timestamp),
+    w.powodZakonczenia === 'timeout' ? 'Timeout (czas się skończył)' : 'Ukończone normalnie'
+  ]);
+
+  // Ekranowanie CSV
+  const csv = [naglowki, ...wiersze]
+    .map(row => row.map(cell => {
+      const s = String(cell);
+      if (s.includes(';') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }).join(';'))
+    .join('\n');
+
+  // BOM dla Excela (poprawne polskie znaki)
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const dataStr = new Date().toISOString().slice(0, 10);
+  a.download = `STOP_CYBERPRZEMOCY_wyniki_${dataStr}.csv`;
+  a.click();
+}
+
+// =====================================================================
+// START
+// =====================================================================
+if (sessionStorage.getItem('admin_zalogowany') === '1') {
+  panelGlowny();
+} else {
+  ekranLogowania();
+}
+</script>
+</body>
+</html>
